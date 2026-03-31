@@ -3,34 +3,33 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PUZZLE 3 // RADIO INTERCEPT</title>
+<title>FINAL // LOCKER 114</title>
 <style>
   :root{
-    --bg0:#050b10;
-    --bg1:#08151d;
-    --panel:rgba(6, 16, 22, 0.78);
-    --line:rgba(120, 255, 210, 0.35);
+    --bg0:#04090d;
+    --bg1:#07131b;
+    --panel:rgba(6, 16, 22, 0.80);
+    --line:rgba(120, 255, 210, 0.32);
     --text:rgba(225, 255, 245, 0.92);
-    --muted:rgba(225, 255, 245, 0.68);
+    --muted:rgba(225, 255, 245, 0.66);
     --accent:rgba(255, 210, 130, 0.92);
     --ok:rgba(150, 255, 190, 0.95);
+    --bad:rgba(255, 120, 140, 0.95);
   }
 
   *{box-sizing:border-box}
   html, body{
     margin:0;
-    height:100%;
+    min-height:100%;
     font-family:"Courier New", Courier, monospace;
     color:var(--text);
     background:
-      radial-gradient(1000px 600px at 30% 20%, rgba(120,255,210,0.08), transparent 60%),
-      radial-gradient(900px 700px at 70% 80%, rgba(255,210,130,0.07), transparent 55%),
+      radial-gradient(900px 600px at 25% 30%, rgba(120,255,210,0.07), transparent 60%),
+      radial-gradient(800px 700px at 75% 80%, rgba(255,210,130,0.06), transparent 55%),
       linear-gradient(180deg, var(--bg1), var(--bg0));
-    overflow:hidden;
   }
 
-  /* CRT scanlines */
-  #scan {
+  #scan{
     position:fixed;
     inset:0;
     pointer-events:none;
@@ -42,6 +41,7 @@
     );
     opacity:0.35;
     mix-blend-mode:overlay;
+    z-index:1;
   }
   @media (prefers-reduced-motion: no-preference){
     #scan{animation:flicker 3.2s infinite}
@@ -54,10 +54,12 @@
   }
 
   .wrap{
-    height:100%;
+    min-height:100vh;
     display:grid;
     place-items:center;
     padding:18px;
+    position:relative;
+    z-index:2;
   }
 
   .console{
@@ -66,7 +68,6 @@
     background: var(--panel);
     padding:16px;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.45) inset;
-    position:relative;
   }
 
   .top{
@@ -78,14 +79,12 @@
     padding-bottom:10px;
     margin-bottom:12px;
   }
-
   .title{
     margin:0;
     font-size:13px;
     text-transform:uppercase;
     letter-spacing:0.6px;
   }
-
   .meta{
     font-size:12px;
     color:var(--muted);
@@ -94,192 +93,229 @@
     white-space:nowrap;
   }
 
-  .barWrap{
-    margin:10px 0 14px;
-    border:1px solid rgba(120,255,210,0.25);
-    padding:8px;
-    background: rgba(0,0,0,0.35);
-  }
-
-  .barTop{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:8px;
-    font-size:12px;
-    color:var(--muted);
-    text-transform:uppercase;
-    letter-spacing:0.4px;
-  }
-
-  .bar{
-    height:16px;
-    border:1px solid rgba(120,255,210,0.28);
-    background: rgba(0,0,0,0.35);
-    position:relative;
-    overflow:hidden;
-  }
-
-  .fill{
-    height:100%;
-    width:0%;
-    background: linear-gradient(90deg,
-      rgba(255,210,130,0.20),
-      rgba(120,255,210,0.35),
-      rgba(150,255,190,0.40)
-    );
-  }
-
-  .tick{
-    position:absolute;
-    top:0;
-    bottom:0;
-    width:1px;
-    background: rgba(255,255,255,0.10);
-  }
-
   .grid{
     display:grid;
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1.1fr 0.9fr;
     gap:14px;
+    align-items:start;
   }
-  @media (max-width: 860px){
+  @media (max-width: 880px){
     .grid{grid-template-columns:1fr}
   }
 
-  .radioFace{
+  .panel{
     border:1px solid rgba(120,255,210,0.25);
-    padding:14px;
     background: rgba(0,0,0,0.32);
+    padding:14px;
   }
 
-  .instructions{
+  .small{
     font-size:12px;
     color:var(--muted);
-    line-height:1.45;
-    margin:0 0 10px;
+    line-height:1.5;
     white-space:pre-line;
+    margin:0;
   }
 
-  .knobRow{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:12px;
-  }
-  @media (max-width: 620px){
-    .knobRow{grid-template-columns: repeat(2, 1fr);}
-  }
-
-  .knobCard{
-    border:1px solid rgba(120,255,210,0.22);
+  .cipherBlock{
+    margin-top:12px;
+    border:1px dashed rgba(120,255,210,0.22);
+    background: rgba(0,0,0,0.35);
     padding:12px;
-    background: rgba(5, 12, 16, 0.55);
+  }
+  .cipherLabel{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .cipherText{
+    font-size:16px;
+    letter-spacing:3px;
+    color:var(--accent);
+    word-break:break-all;
+    line-height:1.6;
+  }
+  .shiftRow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .shiftRow label{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    white-space:nowrap;
+  }
+  input[type="range"]{
+    flex:1;
+    min-width:80px;
+    accent-color: rgba(120,255,210,0.55);
+  }
+  .shiftVal{
+    font-size:14px;
+    color:var(--text);
+    min-width:28px;
+    text-align:right;
+  }
+  .decoded{
+    margin-top:8px;
+    font-size:13px;
+    letter-spacing:1.5px;
+    color:var(--ok);
+    min-height:22px;
+    word-break:break-all;
+    line-height:1.7;
+  }
+  .decodeHint{
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
+    min-height:16px;
+  }
+
+  .articleBox{
+    margin-top:14px;
+    border:1px solid rgba(120,255,210,0.22);
+    background: rgba(0,0,0,0.38);
+    padding:12px;
+  }
+  .articleHeadline{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:6px;
+    color:var(--accent);
+  }
+  .articleMeta{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .articleBody{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .articleBody p{ margin:0 0 8px; }
+  .articleBody p:last-child{ margin:0; }
+
+  .lockWrap{
+    display:grid;
+    gap:12px;
+    margin-top:0;
+  }
+
+  .lockBody{
+    border:1px solid rgba(120,255,210,0.28);
+    background: rgba(0,0,0,0.42);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
     position:relative;
   }
 
-  .kTitle{
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:0.4px;
-    color:var(--muted);
-    margin-bottom:8px;
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
+  .shackle{
+    width:60px;
+    height:34px;
+    border:3px solid rgba(120,255,210,0.45);
+    border-bottom:none;
+    border-radius:30px 30px 0 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
+  .shackle.open{
+    transform: translateY(-20px);
+    opacity:0.5;
   }
 
-  .lockTag{
-    position:absolute;
-    top:10px;
-    right:10px;
-    font-size:11px;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
-    color: rgba(150,255,190,0.95);
-    opacity:0;
-    transition: opacity 120ms linear;
+  .dialRow{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .dialUnit{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+
+  .dialBtn{
+    font: inherit;
+    padding:4px 12px;
+    border:1px solid rgba(120,255,210,0.30);
+    background: rgba(0,0,0,0.25);
+    color: var(--text);
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+    letter-spacing:0;
+    text-transform:none;
     user-select:none;
+  }
+  .dialBtn:active{transform:translateY(1px)}
+
+  .dialWindow{
+    width:48px;
+    height:48px;
+    border:1px solid rgba(120,255,210,0.40);
+    background: rgba(0,0,0,0.55);
+    display:grid;
+    place-items:center;
+    font-size:24px;
+    color:var(--text);
+    position:relative;
+    overflow:hidden;
+  }
+  .dialWindow::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.04) 4px
+    );
     pointer-events:none;
   }
 
-  .dial {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    border:1px solid rgba(120,255,210,0.25);
-    border-radius: 999px;
-    display:grid;
-    place-items:center;
-    background:
-      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), transparent 55%),
-      radial-gradient(circle at 70% 80%, rgba(0,0,0,0.55), transparent 55%);
-    position:relative;
-  }
-
-  .dial::before{
-    content:"";
-    position:absolute;
-    inset:10%;
-    border:1px dashed rgba(120,255,210,0.18);
-    border-radius:999px;
-  }
-
-  .needle{
-    width:2px;
-    height:40%;
-    background: rgba(255,210,130,0.85);
-    transform-origin: 50% 85%;
-    border-radius: 1px;
-    filter: drop-shadow(0 0 6px rgba(255,210,130,0.25));
-  }
-
-  input[type="range"]{
-    width:100%;
-    margin-top:10px;
-    accent-color: rgba(120,255,210,0.55);
-  }
-
-  /* Knob lock glow */
-  .knobCard.locked{
-    border-color: rgba(150,255,190,0.75);
-    box-shadow:
-      0 0 14px rgba(150,255,190,0.18),
-      0 0 0 1px rgba(0,0,0,0.45) inset;
-  }
-  .knobCard.locked .dial{
-    border-color: rgba(150,255,190,0.65);
-    box-shadow: 0 0 18px rgba(150,255,190,0.12) inset;
-  }
-  .knobCard.locked .needle{
-    background: rgba(150,255,190,0.95);
-    filter: drop-shadow(0 0 10px rgba(150,255,190,0.35));
-  }
-  .knobCard.locked .lockTag{ opacity: 1; }
-
-  .side{
-    border:1px solid rgba(120,255,210,0.25);
-    padding:14px;
-    background: rgba(0,0,0,0.32);
-    display:grid;
-    gap:10px;
-    align-content:start;
-  }
-
-  .stat{
-    border:1px dashed rgba(120,255,210,0.18);
-    padding:10px;
-    font-size:12px;
+  .dialSep{
+    font-size:22px;
     color:var(--muted);
+    padding-bottom:20px;
+    user-select:none;
+  }
+
+  .unlockBtn{
+    font: inherit;
+    padding:10px 20px;
+    border:1px solid rgba(120,255,210,0.30);
+    background: rgba(0,0,0,0.25);
+    color: var(--text);
+    cursor:pointer;
     text-transform:uppercase;
     letter-spacing:0.4px;
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
+    font-size:12px;
+    width:100%;
   }
+  .unlockBtn:active{transform:translateY(1px)}
+  .unlockBtn:disabled{opacity:0.5;cursor:not-allowed}
 
-  .btnRow{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
+  .lockStatus{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:var(--muted);
+    min-height:18px;
+    text-align:center;
   }
 
   button{
@@ -295,32 +331,22 @@
   }
   button:active{transform:translateY(1px)}
 
-  .log{
-    border:1px solid rgba(120,255,210,0.20);
-    padding:10px;
-    background: rgba(0,0,0,0.40);
-    min-height:110px;
-    white-space:pre-wrap;
-    font-size:12px;
-    line-height:1.45;
-    color: rgba(225,255,245,0.84);
-  }
-
-  /* Voicemail modal */
   .modalBack{
     position:fixed;
     inset:0;
-    background: rgba(0,0,0,0.78);
+    background: rgba(0,0,0,0.82);
     display:none;
     place-items:center;
     padding:18px;
-    z-index:10;
+    z-index:20;
+    overflow-y:auto;
   }
   .modal{
-    width:min(760px, 100%);
+    width:min(820px, 100%);
     border:1px solid rgba(120,255,210,0.35);
-    background: rgba(0,0,0,0.88);
+    background: rgba(0,0,0,0.92);
     padding:14px;
+    margin:auto;
   }
   .mHead{
     display:flex;
@@ -340,35 +366,84 @@
   .mHint{
     font-size:12px;
     color:var(--muted);
+    white-space:nowrap;
   }
   .mBody{
     white-space:pre-wrap;
-    line-height:1.55;
-    font-size:14px;
+    line-height:1.65;
+    font-size:13px;
+    color:var(--text);
   }
-  .audioBox{
-    margin-top:10px;
-    border:1px dashed rgba(120,255,210,0.22);
+
+  .photoFrame{
+    margin-top:14px;
+    border:1px solid rgba(120,255,210,0.28);
+    background: rgba(0,0,0,0.45);
     padding:10px;
-    background: rgba(0,0,0,0.35);
-    display:grid;
-    gap:10px;
   }
-  .audioRow{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-    font-size:12px;
+  .photoFrameLabel{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .photoPlaceholder{
+    width:100%;
+    aspect-ratio:16/9;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        rgba(120,255,210,0.03),
+        rgba(120,255,210,0.03) 1px,
+        transparent 1px,
+        transparent 14px
+      ),
+      rgba(0,0,0,0.50);
+    border:1px dashed rgba(120,255,210,0.20);
+    display:grid;
+    place-items:center;
+    color:var(--muted);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    position:relative;
+    overflow:hidden;
+    text-align:center;
+    padding:10px;
+  }
+  .photoPlaceholder img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .photoCaption{
+    margin-top:8px;
+    font-size:11px;
     color:var(--muted);
     text-transform:uppercase;
     letter-spacing:0.4px;
   }
-  audio{
-    width:100%;
-    filter: grayscale(1) contrast(1.1);
+
+  .slipNote{
+    margin-top:10px;
+    border:1px dashed rgba(255,210,130,0.35);
+    padding:10px;
+    background: rgba(255,210,130,0.05);
+    font-size:12px;
+    color:var(--accent);
+    line-height:1.6;
+    white-space:pre-wrap;
   }
+
+  .cursor{
+    display:inline-block;
+    width:8px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
 </style>
 </head>
 <body>
@@ -377,307 +452,308 @@
 <div class="wrap">
   <main class="console">
     <div class="top">
-      <h1 class="title">RADIO INTERCEPT // FREQUENCY LOCK</h1>
+      <h1 class="title">PUZZLE 4 // LOCKER 114</h1>
       <div class="meta" id="clock">--:--:--</div>
     </div>
 
-    <div class="barWrap">
-      <div class="barTop">
-        <div>CONNECTIVITY</div>
-        <div><span id="pct">0</span>%</div>
-      </div>
-      <div class="bar" aria-label="Connectivity bar">
-        <div class="fill" id="fill"></div>
-        <div class="tick" style="left:25%"></div>
-        <div class="tick" style="left:50%"></div>
-        <div class="tick" style="left:75%"></div>
-      </div>
-    </div>
-
     <div class="grid">
-      <section class="radioFace">
-        <p class="instructions">Four tuners. One signal.
-Voicemail only plays at full lock.
-When a tuner hits the right frequency, it locks and glows.</p>
 
-        <div class="knobRow">
-          <div class="knobCard" id="card-a">
-            <div class="kTitle"><span>Tuner A</span><span id="aVal">0</span></div>
-            <div class="lockTag">LOCK</div>
-            <div class="dial"><div class="needle" id="aNeedle"></div></div>
-            <input id="a" type="range" min="0" max="100" value="12" />
-          </div>
+      <!-- LEFT: article + cipher -->
+      <section>
 
-          <div class="knobCard" id="card-b">
-            <div class="kTitle"><span>Tuner B</span><span id="bVal">0</span></div>
-            <div class="lockTag">LOCK</div>
-            <div class="dial"><div class="needle" id="bNeedle"></div></div>
-            <input id="b" type="range" min="0" max="100" value="73" />
-          </div>
-
-          <div class="knobCard" id="card-c">
-            <div class="kTitle"><span>Tuner C</span><span id="cVal">0</span></div>
-            <div class="lockTag">LOCK</div>
-            <div class="dial"><div class="needle" id="cNeedle"></div></div>
-            <input id="c" type="range" min="0" max="100" value="41" />
-          </div>
-
-          <div class="knobCard" id="card-d">
-            <div class="kTitle"><span>Tuner D</span><span id="dVal">0</span></div>
-            <div class="lockTag">LOCK</div>
-            <div class="dial"><div class="needle" id="dNeedle"></div></div>
-            <input id="d" type="range" min="0" max="100" value="88" />
+        <div class="articleBox">
+          <div class="articleHeadline">Carleton University Professor Gone Missing</div>
+          <div class="articleMeta">The Charlatan — Campus News — 3 Days Ago</div>
+          <div class="articleBody">
+            <p>History professor Thomas Ellsworth has not been seen on campus since Tuesday morning,
+            when colleagues report he left a faculty meeting abruptly and did not return to his office.
+            Campus security confirmed his keycard was last used at the Dunton Tower faculty entrance at 9:14 AM.</p>
+            <p>Ellsworth was known for his research into the pre-development history of the land beneath
+            Carleton's main campus, and had grown increasingly agitated in recent weeks.
+            A colleague described him as "convinced he'd found something certain people did not want found."</p>
+            <p>His office in Dunton Tower has been sealed pending review. Students report he kept a
+            personal locker in the Mackenzie Building — <span style="color:var(--text);font-weight:bold;">Locker 114</span> —
+            and stored research materials there outside of his office.</p>
+            <p style="color:var(--accent);font-size:11px;border-top:1px dashed rgba(120,255,210,0.18);padding-top:8px;margin-top:8px;">
+              NOTE POSTED ON HIS OFFICE DOOR:<br>
+              "If I'm gone, start at the locker. The combination is written in plain sight — if you know how to read it. Caesar knew. — T.E."
+            </p>
           </div>
         </div>
+
+        <div class="cipherBlock">
+          <div class="cipherLabel">Encrypted note — found taped inside locker 114 door</div>
+          <div class="cipherText">WKUHH / HLJKW / VLA</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);">
+            A second line, written below in smaller text:<br>
+          </div>
+          <div class="cipherText" style="font-size:13px;margin-top:4px;color:rgba(255,210,130,0.65);">
+            "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU."
+          </div>
+
+          <div class="shiftRow">
+            <label for="shiftSlider">Caesar Shift —</label>
+            <input id="shiftSlider" type="range" min="0" max="25" value="0" />
+            <span class="shiftVal" id="shiftVal">0</span>
+          </div>
+          <div class="decoded" id="decoded">—</div>
+          <div class="decodeHint" id="decodeHint"></div>
+        </div>
+
       </section>
 
-      <aside class="side">
-        <div class="stat"><span>Carrier</span><span id="carrier">NO LOCK</span></div>
-        <div class="stat"><span>Noise</span><span id="noise">HIGH</span></div>
-        <div class="stat"><span>Trace</span><span id="trace">UNKNOWN</span></div>
+      <!-- RIGHT: padlock -->
+      <aside>
+        <div class="panel lockWrap">
 
-        <div class="btnRow">
-          <button id="reset">RESET</button>
-          <button id="burst">NOISE BURST</button>
+          <p class="small">Locker 114. Mackenzie Building, lower corridor.
+A three-digit combination padlock.
+
+Decode the cipher. The words spell the numbers.</p>
+
+          <div class="lockBody">
+            <div class="shackle" id="shackle"></div>
+
+            <div class="dialRow">
+              <div class="dialUnit">
+                <button class="dialBtn" data-dial="0" data-dir="1">▲</button>
+                <div class="dialWindow" id="d0">0</div>
+                <button class="dialBtn" data-dial="0" data-dir="-1">▼</button>
+              </div>
+              <div class="dialSep">–</div>
+              <div class="dialUnit">
+                <button class="dialBtn" data-dial="1" data-dir="1">▲</button>
+                <div class="dialWindow" id="d1">0</div>
+                <button class="dialBtn" data-dial="1" data-dir="-1">▼</button>
+              </div>
+              <div class="dialSep">–</div>
+              <div class="dialUnit">
+                <button class="dialBtn" data-dial="2" data-dir="1">▲</button>
+                <div class="dialWindow" id="d2">0</div>
+                <button class="dialBtn" data-dial="2" data-dir="-1">▼</button>
+              </div>
+            </div>
+
+            <button class="unlockBtn" id="unlockBtn">OPEN LOCKER</button>
+            <div class="lockStatus" id="lockStatus"></div>
+          </div>
+
+          <div style="border:1px dashed rgba(120,255,210,0.18);padding:10px;background:rgba(0,0,0,0.28);">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px;">Caesar Cipher — Reference</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+              Each letter is shifted forward in the alphabet by a fixed number.<br>
+              A→D, B→E, C→F ... (shift of 3)<br><br>
+              To decode: shift backwards by the same amount.<br>
+              The decoded text spells out three numbers as words.
+            </div>
+          </div>
+
         </div>
-
-        <div class="log" id="log"></div>
       </aside>
     </div>
   </main>
 </div>
 
-<!-- Voicemail modal -->
+<!-- Locker modal -->
 <div class="modalBack" id="modalBack" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="mHead">
-      <p class="mTitle">VOICEMAIL // BUFFERED</p>
+      <p class="mTitle">LOCKER 114 // CONTENTS</p>
       <div class="mHint">Press <b>ESC</b> to close</div>
     </div>
+    <div class="mBody" id="modalBody"></div>
 
-    <div class="mBody">
-FULL LOCK CONFIRMED.
-VOICEMAIL PAYLOAD READY.
+    <div class="photoFrame" id="photoFrame" style="display:none;">
+      <div class="photoFrameLabel">Blueprint photograph — circled location</div>
+      <div class="photoPlaceholder" id="photoPlaceholder">
+        <!--
+          REPLACE THIS WITH YOUR ACTUAL PHOTO:
+          <img src="your-location-photo.jpg" alt="Location photograph" />
+
+          Until then, the placeholder text below shows.
+        -->
+        [ REPLACE WITH LOCATION PHOTOGRAPH ]<br>
+        <span style="opacity:0.55;font-size:10px;">Add your campus photo here — set src= on the img tag above</span>
+      </div>
+      <div class="photoCaption">Location identified — see physical slip of paper at this site</div>
     </div>
 
-    <div class="audioBox">
-      <div class="audioRow">
-        <div>STATUS: <span style="color:var(--ok)">PLAYING</span></div>
-        <div>ID: VM-017</div>
-      </div>
-
-      <!-- Replace src="" with your real file later -->
-      <audio id="vmAudio" controls src=""></audio>
-
-      <div class="audioRow">
-        <div>NOTE: Replace src="" later.</div>
-        <div>FORMAT: .mp3 / .wav</div>
-      </div>
-    </div>
+    <div class="slipNote" id="slipNote" style="display:none;"></div>
   </div>
 </div>
 
 <script>
 (() => {
-  const $ = (id) => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-  // ---------- Clock ----------
+  // ---- Clock ----
   function tickClock(){ $("clock").textContent = new Date().toLocaleTimeString(); }
   tickClock(); setInterval(tickClock, 1000);
 
-  const knobs = [
-    { id:"a", needle:"aNeedle", val:"aVal", card:"card-a" },
-    { id:"b", needle:"bNeedle", val:"bVal", card:"card-b" },
-    { id:"c", needle:"cNeedle", val:"cVal", card:"card-c" },
-    { id:"d", needle:"dNeedle", val:"dVal", card:"card-d" },
-  ];
+  // ---- Caesar cipher ----
+  // Encoded with shift +3 (classic Caesar).
+  // "WKUHH / HLJKW / VLA" decodes to "THREE / EIGHT / SIX"
+  // Combination: 3 - 8 - 6
+  //
+  // Second line encodes:
+  // "Caesar was a Roman Emperor. His cipher shifts each letter by a FIXED NUMBER."
+  // at shift 3 → "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU."
+  // (this is already shown in ciphertext above as the "hint" — players decode this too)
 
-  // Targets (0..100). Keep them integers.
-  const TARGETS = { a: 34, b: 61, c: 17, d: 79 };
+  const CIPHER_MAIN  = "WKUHH / HLJKW / VLA";
+  const CIPHER_HINT  = "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU.";
+  const CORRECT_SHIFT = 3;
+  const COMBO = [3, 8, 6]; // THREE, EIGHT, SIX
 
-  // Within this many steps, the knob snaps exactly to the target (makes 100% feel fair).
-  const SNAP_TOLERANCE = 1;
-
-  // Delay after hitting 100% before voicemail pops (ms)
-  const VOICEMAIL_DELAY_MS = 1200;
-
-  // ---------- Log ----------
-  const log = $("log");
-  function addLog(line){
-    const t = new Date().toLocaleTimeString();
-    log.textContent = `[${t}] ${line}\n` + log.textContent;
+  function caesarDecode(text, shift){
+    return text.split("").map(ch => {
+      const upper = ch >= "A" && ch <= "Z";
+      const lower = ch >= "a" && ch <= "z";
+      if (!upper && !lower) return ch;
+      const base = upper ? 65 : 97;
+      return String.fromCharCode(((ch.charCodeAt(0) - base - shift + 26) % 26) + base);
+    }).join("");
   }
 
-  // ---------- Dial visuals ----------
-  function angleFor(v){ return -135 + (v/100) * 270; }
-  function setNeedle(needleEl, v){
-    needleEl.style.transform = `rotate(${angleFor(v)}deg) translateY(-6px)`;
-  }
+  const slider = $("shiftSlider");
+  const decodedEl = $("decoded");
+  const decodeHintEl = $("decodeHint");
 
-  // ---------- Connectivity ----------
-  // 100% ONLY when all 4 knobs match exactly. Otherwise capped at 99 with smooth feedback.
-  function computeConnectivity(){
-    const a = Number($("a").value);
-    const b = Number($("b").value);
-    const c = Number($("c").value);
-    const d = Number($("d").value);
+  function updateCipher(){
+    const shift = Number(slider.value);
+    $("shiftVal").textContent = String(shift);
 
-    const matches =
-      (a === TARGETS.a) +
-      (b === TARGETS.b) +
-      (c === TARGETS.c) +
-      (d === TARGETS.d);
+    const dec = caesarDecode(CIPHER_MAIN, shift);
+    decodedEl.textContent = dec;
 
-    if (matches === 4) return 100;
-
-    const closeness = (v, t) => {
-      const diff = Math.abs(v - t);      // 0..100
-      const x = diff / 100;
-      return 1 - Math.pow(x, 1.6);       // 0..1
-    };
-
-    const avg = (closeness(a, TARGETS.a) + closeness(b, TARGETS.b) + closeness(c, TARGETS.c) + closeness(d, TARGETS.d)) / 4;
-    return Math.min(99, Math.max(0, Math.round(avg * 99)));
-  }
-
-  function updateStatus(pct){
-    $("pct").textContent = String(pct);
-    $("fill").style.width = pct + "%";
-
-    if (pct === 100) {
-      $("carrier").textContent = "FULL LOCK";
-      $("noise").textContent = "SILENT";
-      $("trace").textContent = "CONFIRMED";
-      $("carrier").style.color = "var(--ok)";
-    } else if (pct >= 70) {
-      $("carrier").textContent = "WEAK LOCK";
-      $("noise").textContent = "MED";
-      $("trace").textContent = "FADING";
-      $("carrier").style.color = "var(--accent)";
+    if (shift === CORRECT_SHIFT){
+      decodeHintEl.textContent = "✓ DECODED — Three words. Three digits. Enter the combination.";
+      decodeHintEl.style.color = "var(--ok)";
+    } else if (shift === 0){
+      decodeHintEl.textContent = "";
     } else {
-      $("carrier").textContent = "NO LOCK";
-      $("noise").textContent = "HIGH";
-      $("trace").textContent = "UNKNOWN";
-      $("carrier").style.color = "var(--muted)";
+      decodeHintEl.textContent = "";
     }
   }
 
-  let fullLock = false;
-  let voicemailScheduled = false;
+  slider.addEventListener("input", updateCipher);
+  updateCipher();
 
-  function refreshDials(){
-    // Update needles + values + glow per knob
-    for (const k of knobs){
-      const v = Number($(k.id).value);
+  // ---- Padlock dials ----
+  const dials = [0, 0, 0];
+  const dialEls = [$("d0"), $("d1"), $("d2")];
 
-      $(k.val).textContent = String(v);
-      setNeedle($(k.needle), v);
-
-      const card = $(k.card);
-      if (v === TARGETS[k.id]) card.classList.add("locked");
-      else card.classList.remove("locked");
-    }
-
-    const pct = computeConnectivity();
-    updateStatus(pct);
-
-    if (!fullLock && pct === 100){
-      fullLock = true;
-      addLog("FULL LOCK ACHIEVED.");
-      addLog("SIGNAL CLEAN. HOLDING...");
-      scheduleVoicemail();
-    }
-  }
-
-  // Apply snap-to-target and then refresh
-  function snapIfClose(id){
-    const v = Number($(id).value);
-    const t = TARGETS[id];
-    if (Math.abs(v - t) <= SNAP_TOLERANCE) {
-      $(id).value = String(t);
-    }
-  }
-
-  // Input listeners
-  for (const k of knobs){
-    $(k.id).addEventListener("input", () => {
-      if (!fullLock) addLog(`TUNE ${k.id.toUpperCase()} -> ${$(k.id).value}`);
-      snapIfClose(k.id);
-      refreshDials();
+  document.querySelectorAll(".dialBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (lockerOpen) return;
+      const idx = Number(btn.dataset.dial);
+      const dir = Number(btn.dataset.dir);
+      dials[idx] = (dials[idx] + dir + 10) % 10;
+      dialEls[idx].textContent = String(dials[idx]);
     });
-  }
-
-  // Buttons
-  $("reset").addEventListener("click", () => {
-    if (fullLock) return;
-    $("a").value = 12;
-    $("b").value = 73;
-    $("c").value = 41;
-    $("d").value = 88;
-    addLog("RESET APPLIED.");
-    // allow snap to catch if reset lands near target in future edits
-    snapIfClose("a"); snapIfClose("b"); snapIfClose("c"); snapIfClose("d");
-    refreshDials();
   });
 
-  $("burst").addEventListener("click", () => {
-    if (fullLock) return;
+  // ---- Unlock ----
+  let lockerOpen = false;
 
-    // Noise burst nudges but won't "accidentally" land exactly on a target.
-    function nudge(id, target){
-      const v = Number($(id).value);
-      let delta = Math.floor((Math.random() * 13) - 6); // -6..+6
-      let nv = Math.max(0, Math.min(100, v + delta));
-      if (nv === target) nv = Math.max(0, Math.min(100, nv + (Math.random() < 0.5 ? -1 : 1)));
-      $(id).value = String(nv);
+  $("unlockBtn").addEventListener("click", () => {
+    if (lockerOpen) return;
+    const statusEl = $("lockStatus");
+
+    if (dials[0] === COMBO[0] && dials[1] === COMBO[1] && dials[2] === COMBO[2]){
+      lockerOpen = true;
+      $("shackle").classList.add("open");
+      statusEl.style.color = "var(--ok)";
+      statusEl.textContent = "STATUS: ACCEPTED — LOCKER OPEN.";
+      $("unlockBtn").disabled = true;
+      setTimeout(openLockerModal, 800);
+    } else {
+      statusEl.style.color = "var(--bad)";
+      statusEl.textContent = "STATUS: REJECTED.";
     }
-
-    nudge("a", TARGETS.a); nudge("b", TARGETS.b); nudge("c", TARGETS.c); nudge("d", TARGETS.d);
-    addLog("NOISE BURST — FREQUENCY SHIFT.");
-    // still allow snap if it's close (feels good)
-    snapIfClose("a"); snapIfClose("b"); snapIfClose("c"); snapIfClose("d");
-    refreshDials();
   });
 
-  // ---------- Voicemail modal ----------
-  const modalBack = $("modalBack");
-  const audio = $("vmAudio");
+  // ---- Locker contents text ----
+  const LOCKER_TEXT =
+`LOCKER 114 — CONTENTS
+━━━━━━━━━━━━━━━━━━━━━
 
-  function openModal(){
-    modalBack.style.display = "grid";
-    modalBack.setAttribute("aria-hidden","false");
+A faded Carleton lanyard hangs on the hook.
+
+Several manila folders are stacked on the shelf —
+labelled "PRE-DEVELOPMENT SURVEY — RESTRICTED."
+
+At the very back, wedged behind the folders:
+a journal. Dense. Margin to margin, page after page.
+Diagrams, dates, cross-references going back decades.
+
+Then one page.
+
+Torn at the top — ripped from somewhere else entirely.
+An old hand-drafted blueprint. Yellowed paper.
+A single room circled in red ink.
+
+In Ellsworth's handwriting beneath the circle:
+
+  "This room does not appear on any official floor plan.
+   Sub-level. East tunnel corridor. Access unknown.
+   They don't know I found it."
+
+Further in, the tone shifts:
+
+  "Someone is in my office when I'm not there.
+   Files moved. Email already read when I open it.
+   They are watching.
+
+   If I disappear — go to my office.
+   Dunton Tower, 4th floor.
+   The rotary phone is still on the desk.
+   I hid an emergency number on a slip of paper
+   underneath the phone itself.
+
+   Call it."
+
+You photograph the blueprint. You close the locker.
+
+The next step is Dunton Tower.`;
+
+  function openLockerModal(){
+    $("modalBody").textContent = "";
+    $("photoFrame").style.display = "block";
+    $("slipNote").style.display = "block";
+    $("slipNote").textContent =
+      "▸ NEXT STEP: Dunton Tower, 4th floor — Professor Ellsworth's old office.\n" +
+      "  Find the rotary phone on the desk. The number is hidden underneath it.\n\n" +
+      "  ▸ A physical slip of paper is hidden at the location shown above.\n" +
+      "    Find it to continue.";
+
+    $("modalBack").style.display = "grid";
+    $("modalBack").setAttribute("aria-hidden","false");
+
+    typeText($("modalBody"), LOCKER_TEXT);
   }
-  function closeModal(){
-    modalBack.style.display = "none";
-    modalBack.setAttribute("aria-hidden","true");
-    try { audio.pause(); audio.currentTime = 0; } catch {}
-  }
 
-  function scheduleVoicemail(){
-    if (voicemailScheduled) return;
-    voicemailScheduled = true;
-
-    setTimeout(() => {
-      addLog("VOICEMAIL PAYLOAD DETECTED.");
-      addLog("PLAYBACK READY.");
-      openModal();
-
-      // Attempt autoplay (may be blocked; controls still work).
-      const p = audio.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => addLog("AUTOPLAY BLOCKED — USER ACTION REQUIRED."));
+  // ---- Typewriter ----
+  function typeText(el, text){
+    el.textContent = "";
+    let i = 0;
+    function step(){
+      if (i < text.length){
+        el.textContent += text.charAt(i);
+        const ch = text.charAt(i); i++;
+        setTimeout(step, ch === "\n" ? 50 : ch === "." ? 55 : 13);
       }
-    }, VOICEMAIL_DELAY_MS);
+    }
+    step();
   }
 
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalBack.style.display === "grid") closeModal();
+  // ---- ESC closes modal ----
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && $("modalBack").style.display === "grid"){
+      $("modalBack").style.display = "none";
+      $("modalBack").setAttribute("aria-hidden","true");
+    }
   });
-
-  // ---------- Start ----------
-  addLog("RADIO INTERFACE ONLINE.");
-  addLog("SEARCHING FOR CARRIER...");
-  refreshDials();
 })();
 </script>
 </body>
