@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PUZZLE 3 // RADIO INTERCEPT</title>
+<style>
+  :root{
+    --bg0:#050b10;
+    --bg1:#08151d;
+    --panel:rgba(6, 16, 22, 0.78);
+    --line:rgba(120, 255, 210, 0.35);
+    --text:rgba(225, 255, 245, 0.92);
+    --muted:rgba(225, 255, 245, 0.68);
+    --accent:rgba(255, 210, 130, 0.92);
+    --ok:rgba(150, 255, 190, 0.95);
+  }
+
+  *{box-sizing:border-box}
+  html, body{
+    margin:0;
+    height:100%;
+    font-family:"Courier New", Courier, monospace;
+    color:var(--text);
+    background:
+      radial-gradient(1000px 600px at 30% 20%, rgba(120,255,210,0.08), transparent 60%),
+      radial-gradient(900px 700px at 70% 80%, rgba(255,210,130,0.07), transparent 55%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+    overflow:hidden;
+  }
+
+  /* CRT scanlines */
+  #scan {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.00),
+      rgba(255,255,255,0.00) 2px,
+      rgba(255,255,255,0.03) 3px
+    );
+    opacity:0.35;
+    mix-blend-mode:overlay;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    #scan{animation:flicker 3.2s infinite}
+    @keyframes flicker{
+      0%,100%{opacity:0.18}
+      45%{opacity:0.40}
+      52%{opacity:0.12}
+      70%{opacity:0.33}
+    }
+  }
+
+  .wrap{
+    height:100%;
+    display:grid;
+    place-items:center;
+    padding:18px;
+  }
+
+  .console{
+    width:min(980px, 100%);
+    border:1px solid var(--line);
+    background: var(--panel);
+    padding:16px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.45) inset;
+    position:relative;
+  }
+
+  .top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    border-bottom:1px dashed rgba(120,255,210,0.22);
+    padding-bottom:10px;
+    margin-bottom:12px;
+  }
+
+  .title{
+    margin:0;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+  }
+
+  .meta{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    white-space:nowrap;
+  }
+
+  .barWrap{
+    margin:10px 0 14px;
+    border:1px solid rgba(120,255,210,0.25);
+    padding:8px;
+    background: rgba(0,0,0,0.35);
+  }
+
+  .barTop{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+
+  .bar{
+    height:16px;
+    border:1px solid rgba(120,255,210,0.28);
+    background: rgba(0,0,0,0.35);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg,
+      rgba(255,210,130,0.20),
+      rgba(120,255,210,0.35),
+      rgba(150,255,190,0.40)
+    );
+  }
+
+  .tick{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:1px;
+    background: rgba(255,255,255,0.10);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap:14px;
+  }
+  @media (max-width: 860px){
+    .grid{grid-template-columns:1fr}
+  }
+
+  .radioFace{
+    border:1px solid rgba(120,255,210,0.25);
+    padding:14px;
+    background: rgba(0,0,0,0.32);
+  }
+
+  .instructions{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.45;
+    margin:0 0 10px;
+    white-space:pre-line;
+  }
+
+  .knobRow{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:12px;
+  }
+  @media (max-width: 620px){
+    .knobRow{grid-template-columns: repeat(2, 1fr);}
+  }
+
+  .knobCard{
+    border:1px solid rgba(120,255,210,0.22);
+    padding:12px;
+    background: rgba(5, 12, 16, 0.55);
+    position:relative;
+  }
+
+  .kTitle{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:var(--muted);
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+  }
+
+  .lockTag{
+    position:absolute;
+    top:10px;
+    right:10px;
+    font-size:11px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color: rgba(150,255,190,0.95);
+    opacity:0;
+    transition: opacity 120ms linear;
+    user-select:none;
+    pointer-events:none;
+  }
+
+  .dial {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border:1px solid rgba(120,255,210,0.25);
+    border-radius: 999px;
+    display:grid;
+    place-items:center;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), transparent 55%),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,0.55), transparent 55%);
+    position:relative;
+  }
+
+  .dial::before{
+    content:"";
+    position:absolute;
+    inset:10%;
+    border:1px dashed rgba(120,255,210,0.18);
+    border-radius:999px;
+  }
+
+  .needle{
+    width:2px;
+    height:40%;
+    background: rgba(255,210,130,0.85);
+    transform-origin: 50% 85%;
+    border-radius: 1px;
+    filter: drop-shadow(0 0 6px rgba(255,210,130,0.25));
+  }
+
+  input[type="range"]{
+    width:100%;
+    margin-top:10px;
+    accent-color: rgba(120,255,210,0.55);
+  }
+
+  /* Knob lock glow */
+  .knobCard.locked{
+    border-color: rgba(150,255,190,0.75);
+    box-shadow:
+      0 0 14px rgba(150,255,190,0.18),
+      0 0 0 1px rgba(0,0,0,0.45) inset;
+  }
+  .knobCard.locked .dial{
+    border-color: rgba(150,255,190,0.65);
+    box-shadow: 0 0 18px rgba(150,255,190,0.12) inset;
+  }
+  .knobCard.locked .needle{
+    background: rgba(150,255,190,0.95);
+    filter: drop-shadow(0 0 10px rgba(150,255,190,0.35));
+  }
+  .knobCard.locked .lockTag{ opacity: 1; }
+
+  .side{
+    border:1px solid rgba(120,255,210,0.25);
+    padding:14px;
+    background: rgba(0,0,0,0.32);
+    display:grid;
+    gap:10px;
+    align-content:start;
+  }
+
+  .stat{
+    border:1px dashed rgba(120,255,210,0.18);
+    padding:10px;
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .btnRow{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    font: inherit;
+    padding:10px 12px;
+    border:1px solid rgba(120,255,210,0.30);
+    background: rgba(0,0,0,0.25);
+    color: var(--text);
+    cursor:pointer;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    font-size:12px;
+  }
+  button:active{transform:translateY(1px)}
+
+  .log{
+    border:1px solid rgba(120,255,210,0.20);
+    padding:10px;
+    background: rgba(0,0,0,0.40);
+    min-height:110px;
+    white-space:pre-wrap;
+    font-size:12px;
+    line-height:1.45;
+    color: rgba(225,255,245,0.84);
+  }
+
+  /* Voicemail modal */
+  .modalBack{
+    position:fixed;
+    inset:0;
+    background: rgba(0,0,0,0.78);
+    display:none;
+    place-items:center;
+    padding:18px;
+    z-index:10;
+  }
+  .modal{
+    width:min(760px, 100%);
+    border:1px solid rgba(120,255,210,0.35);
+    background: rgba(0,0,0,0.88);
+    padding:14px;
+  }
+  .mHead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px dashed rgba(120,255,210,0.22);
+    padding-bottom:10px;
+    margin-bottom:10px;
+    gap:10px;
+  }
+  .mTitle{
+    margin:0;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+  }
+  .mHint{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .mBody{
+    white-space:pre-wrap;
+    line-height:1.55;
+    font-size:14px;
+  }
+  .audioBox{
+    margin-top:10px;
+    border:1px dashed rgba(120,255,210,0.22);
+    padding:10px;
+    background: rgba(0,0,0,0.35);
+    display:grid;
+    gap:10px;
+  }
+  .audioRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+  audio{
+    width:100%;
+    filter: grayscale(1) contrast(1.1);
+  }
+</style>
+</head>
+<body>
+<div id="scan"></div>
+
+<div class="wrap">
+  <main class="console">
+    <div class="top">
+      <h1 class="title">RADIO INTERCEPT // FREQUENCY LOCK</h1>
+      <div class="meta" id="clock">--:--:--</div>
+    </div>
+
+    <div class="barWrap">
+      <div class="barTop">
+        <div>CONNECTIVITY</div>
+        <div><span id="pct">0</span>%</div>
+      </div>
+      <div class="bar" aria-label="Connectivity bar">
+        <div class="fill" id="fill"></div>
+        <div class="tick" style="left:25%"></div>
+        <div class="tick" style="left:50%"></div>
+        <div class="tick" style="left:75%"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="radioFace">
+        <p class="instructions">Four tuners. One signal.
+Voicemail only plays at full lock.
+When a tuner hits the right frequency, it locks and glows.</p>
+
+        <div class="knobRow">
+          <div class="knobCard" id="card-a">
+            <div class="kTitle"><span>Tuner A</span><span id="aVal">0</span></div>
+            <div class="lockTag">LOCK</div>
+            <div class="dial"><div class="needle" id="aNeedle"></div></div>
+            <input id="a" type="range" min="0" max="100" value="12" />
+          </div>
+
+          <div class="knobCard" id="card-b">
+            <div class="kTitle"><span>Tuner B</span><span id="bVal">0</span></div>
+            <div class="lockTag">LOCK</div>
+            <div class="dial"><div class="needle" id="bNeedle"></div></div>
+            <input id="b" type="range" min="0" max="100" value="73" />
+          </div>
+
+          <div class="knobCard" id="card-c">
+            <div class="kTitle"><span>Tuner C</span><span id="cVal">0</span></div>
+            <div class="lockTag">LOCK</div>
+            <div class="dial"><div class="needle" id="cNeedle"></div></div>
+            <input id="c" type="range" min="0" max="100" value="41" />
+          </div>
+
+          <div class="knobCard" id="card-d">
+            <div class="kTitle"><span>Tuner D</span><span id="dVal">0</span></div>
+            <div class="lockTag">LOCK</div>
+            <div class="dial"><div class="needle" id="dNeedle"></div></div>
+            <input id="d" type="range" min="0" max="100" value="88" />
+          </div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="stat"><span>Carrier</span><span id="carrier">NO LOCK</span></div>
+        <div class="stat"><span>Noise</span><span id="noise">HIGH</span></div>
+        <div class="stat"><span>Trace</span><span id="trace">UNKNOWN</span></div>
+
+        <div class="btnRow">
+          <button id="reset">RESET</button>
+          <button id="burst">NOISE BURST</button>
+        </div>
+
+        <div class="log" id="log"></div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- Voicemail modal -->
+<div class="modalBack" id="modalBack" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="mHead">
+      <p class="mTitle">VOICEMAIL // BUFFERED</p>
+      <div class="mHint">Press <b>ESC</b> to close</div>
+    </div>
+
+    <div class="mBody">
+FULL LOCK CONFIRMED.
+VOICEMAIL PAYLOAD READY.
+    </div>
+
+    <div class="audioBox">
+      <div class="audioRow">
+        <div>STATUS: <span style="color:var(--ok)">PLAYING</span></div>
+        <div>ID: VM-017</div>
+      </div>
+
+      <!-- Replace src="" with your real file later -->
+      <audio id="vmAudio" controls src=""></audio>
+
+      <div class="audioRow">
+        <div>NOTE: Replace src="" later.</div>
+        <div>FORMAT: .mp3 / .wav</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- Clock ----------
+  function tickClock(){ $("clock").textContent = new Date().toLocaleTimeString(); }
+  tickClock(); setInterval(tickClock, 1000);
+
+  const knobs = [
+    { id:"a", needle:"aNeedle", val:"aVal", card:"card-a" },
+    { id:"b", needle:"bNeedle", val:"bVal", card:"card-b" },
+    { id:"c", needle:"cNeedle", val:"cVal", card:"card-c" },
+    { id:"d", needle:"dNeedle", val:"dVal", card:"card-d" },
+  ];
+
+  // Targets (0..100). Keep them integers.
+  const TARGETS = { a: 34, b: 61, c: 17, d: 79 };
+
+  // Within this many steps, the knob snaps exactly to the target (makes 100% feel fair).
+  const SNAP_TOLERANCE = 1;
+
+  // Delay after hitting 100% before voicemail pops (ms)
+  const VOICEMAIL_DELAY_MS = 1200;
+
+  // ---------- Log ----------
+  const log = $("log");
+  function addLog(line){
+    const t = new Date().toLocaleTimeString();
+    log.textContent = `[${t}] ${line}\n` + log.textContent;
+  }
+
+  // ---------- Dial visuals ----------
+  function angleFor(v){ return -135 + (v/100) * 270; }
+  function setNeedle(needleEl, v){
+    needleEl.style.transform = `rotate(${angleFor(v)}deg) translateY(-6px)`;
+  }
+
+  // ---------- Connectivity ----------
+  // 100% ONLY when all 4 knobs match exactly. Otherwise capped at 99 with smooth feedback.
+  function computeConnectivity(){
+    const a = Number($("a").value);
+    const b = Number($("b").value);
+    const c = Number($("c").value);
+    const d = Number($("d").value);
+
+    const matches =
+      (a === TARGETS.a) +
+      (b === TARGETS.b) +
+      (c === TARGETS.c) +
+      (d === TARGETS.d);
+
+    if (matches === 4) return 100;
+
+    const closeness = (v, t) => {
+      const diff = Math.abs(v - t);      // 0..100
+      const x = diff / 100;
+      return 1 - Math.pow(x, 1.6);       // 0..1
+    };
+
+    const avg = (closeness(a, TARGETS.a) + closeness(b, TARGETS.b) + closeness(c, TARGETS.c) + closeness(d, TARGETS.d)) / 4;
+    return Math.min(99, Math.max(0, Math.round(avg * 99)));
+  }
+
+  function updateStatus(pct){
+    $("pct").textContent = String(pct);
+    $("fill").style.width = pct + "%";
+
+    if (pct === 100) {
+      $("carrier").textContent = "FULL LOCK";
+      $("noise").textContent = "SILENT";
+      $("trace").textContent = "CONFIRMED";
+      $("carrier").style.color = "var(--ok)";
+    } else if (pct >= 70) {
+      $("carrier").textContent = "WEAK LOCK";
+      $("noise").textContent = "MED";
+      $("trace").textContent = "FADING";
+      $("carrier").style.color = "var(--accent)";
+    } else {
+      $("carrier").textContent = "NO LOCK";
+      $("noise").textContent = "HIGH";
+      $("trace").textContent = "UNKNOWN";
+      $("carrier").style.color = "var(--muted)";
+    }
+  }
+
+  let fullLock = false;
+  let voicemailScheduled = false;
+
+  function refreshDials(){
+    // Update needles + values + glow per knob
+    for (const k of knobs){
+      const v = Number($(k.id).value);
+
+      $(k.val).textContent = String(v);
+      setNeedle($(k.needle), v);
+
+      const card = $(k.card);
+      if (v === TARGETS[k.id]) card.classList.add("locked");
+      else card.classList.remove("locked");
+    }
+
+    const pct = computeConnectivity();
+    updateStatus(pct);
+
+    if (!fullLock && pct === 100){
+      fullLock = true;
+      addLog("FULL LOCK ACHIEVED.");
+      addLog("SIGNAL CLEAN. HOLDING...");
+      scheduleVoicemail();
+    }
+  }
+
+  // Apply snap-to-target and then refresh
+  function snapIfClose(id){
+    const v = Number($(id).value);
+    const t = TARGETS[id];
+    if (Math.abs(v - t) <= SNAP_TOLERANCE) {
+      $(id).value = String(t);
+    }
+  }
+
+  // Input listeners
+  for (const k of knobs){
+    $(k.id).addEventListener("input", () => {
+      if (!fullLock) addLog(`TUNE ${k.id.toUpperCase()} -> ${$(k.id).value}`);
+      snapIfClose(k.id);
+      refreshDials();
+    });
+  }
+
+  // Buttons
+  $("reset").addEventListener("click", () => {
+    if (fullLock) return;
+    $("a").value = 12;
+    $("b").value = 73;
+    $("c").value = 41;
+    $("d").value = 88;
+    addLog("RESET APPLIED.");
+    // allow snap to catch if reset lands near target in future edits
+    snapIfClose("a"); snapIfClose("b"); snapIfClose("c"); snapIfClose("d");
+    refreshDials();
+  });
+
+  $("burst").addEventListener("click", () => {
+    if (fullLock) return;
+
+    // Noise burst nudges but won't "accidentally" land exactly on a target.
+    function nudge(id, target){
+      const v = Number($(id).value);
+      let delta = Math.floor((Math.random() * 13) - 6); // -6..+6
+      let nv = Math.max(0, Math.min(100, v + delta));
+      if (nv === target) nv = Math.max(0, Math.min(100, nv + (Math.random() < 0.5 ? -1 : 1)));
+      $(id).value = String(nv);
+    }
+
+    nudge("a", TARGETS.a); nudge("b", TARGETS.b); nudge("c", TARGETS.c); nudge("d", TARGETS.d);
+    addLog("NOISE BURST — FREQUENCY SHIFT.");
+    // still allow snap if it's close (feels good)
+    snapIfClose("a"); snapIfClose("b"); snapIfClose("c"); snapIfClose("d");
+    refreshDials();
+  });
+
+  // ---------- Voicemail modal ----------
+  const modalBack = $("modalBack");
+  const audio = $("vmAudio");
+
+  function openModal(){
+    modalBack.style.display = "grid";
+    modalBack.setAttribute("aria-hidden","false");
+  }
+  function closeModal(){
+    modalBack.style.display = "none";
+    modalBack.setAttribute("aria-hidden","true");
+    try { audio.pause(); audio.currentTime = 0; } catch {}
+  }
+
+  function scheduleVoicemail(){
+    if (voicemailScheduled) return;
+    voicemailScheduled = true;
+
+    setTimeout(() => {
+      addLog("VOICEMAIL PAYLOAD DETECTED.");
+      addLog("PLAYBACK READY.");
+      openModal();
+
+      // Attempt autoplay (may be blocked; controls still work).
+      const p = audio.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => addLog("AUTOPLAY BLOCKED — USER ACTION REQUIRED."));
+      }
+    }, VOICEMAIL_DELAY_MS);
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalBack.style.display === "grid") closeModal();
+  });
+
+  // ---------- Start ----------
+  addLog("RADIO INTERFACE ONLINE.");
+  addLog("SEARCHING FOR CARRIER...");
+  refreshDials();
+})();
+</script>
+</body>
+</html>
