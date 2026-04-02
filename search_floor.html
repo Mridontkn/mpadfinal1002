@@ -313,7 +313,7 @@
 <div class="wrap">
   <main class="console">
     <div class="top">
-      <h1 class="title">FINAL // ROTARY LINE</h1>
+      <h1 class="title">PUZZLE 3 // ROTARY LINE</h1>
       <div class="meta" id="clock">--:--:--</div>
     </div>
 
@@ -538,8 +538,41 @@ just change the channel.
     modalBack.setAttribute("aria-hidden","true");
     typing = false;
   }
+function openFinalReveal(){
+  const modalBack = document.getElementById("modalBack");
+  const letterBody = document.getElementById("letterBody");
 
-  function typeText(text){
+  // Open modal
+  modalBack.style.display = "grid";
+  modalBack.setAttribute("aria-hidden","false");
+
+  // Clear existing content
+  letterBody.innerHTML = "";
+
+  // IMAGE
+  const imgWrap = document.createElement("div");
+  imgWrap.style.textAlign = "center";
+
+  const img = document.createElement("img");
+  img.src = "1774999482096.jpg"; // replaced image file
+  img.style.maxWidth = "100%";
+  img.style.border = "1px solid rgba(120,255,210,0.4)";
+
+  imgWrap.appendChild(img);
+
+  // AUDIO
+  const audio = document.createElement("audio");
+  audio.src = "your-audio-file.mp3"; // <-- replace this
+  audio.autoplay = true;
+  audio.controls = true;
+  audio.style.marginTop = "16px";
+  audio.style.width = "100%";
+
+  // Append to modal
+  letterBody.appendChild(imgWrap);
+  letterBody.appendChild(audio);
+}
+  function typeText(text, showImage = false){
     letterBody.textContent = "";
     typing = true;
     openModal();
@@ -559,12 +592,29 @@ just change the channel.
         setTimeout(step, delay);
       } else {
         letterBody.appendChild(cursor);
+
+  if (showImage) {
+    const imgWrap = document.createElement("div");
+    imgWrap.style.marginTop = "20px";
+    imgWrap.style.textAlign = "center";
+
+    const img = document.createElement("img");
+    img.src = "https://via.placeholder.com/500x250";
+    img.alt = "Final Image";
+    img.style.maxWidth = "100%";
+    img.style.border = "1px solid rgba(120,255,210,0.4)";
+
+    imgWrap.appendChild(img);
+    letterBody.appendChild(imgWrap);
+  }
       }
     }
     step();
   }
 
-  function openLetter(){ typeText(letterText); }
+  function openLetter(){
+  openFinalReveal();
+}
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modalBack.style.display === "grid") closeModal();

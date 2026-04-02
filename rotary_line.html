@@ -472,7 +472,7 @@
             Carleton's main campus, and had grown increasingly agitated in recent weeks.
             A colleague described him as "convinced he'd found something certain people did not want found."</p>
             <p>His office in Dunton Tower has been sealed pending review. Students report he kept a
-            personal locker in the Mackenzie Building — <span style="color:var(--text);font-weight:bold;">Locker 114</span> —
+            personal locker in the Mackenzie Building
             and stored research materials there outside of his office.</p>
             <p style="color:var(--accent);font-size:11px;border-top:1px dashed rgba(120,255,210,0.18);padding-top:8px;margin-top:8px;">
               NOTE POSTED ON HIS OFFICE DOOR:<br>
@@ -482,22 +482,11 @@
         </div>
 
         <div class="cipherBlock">
-          <div class="cipherLabel">Encrypted note — found taped inside locker 114 door</div>
+          <div class="cipherLabel">Caesar shifted ciphertext</div>
           <div class="cipherText">WKUHH / HLJKW / VLA</div>
-          <div style="margin-top:8px;font-size:11px;color:var(--muted);">
-            A second line, written below in smaller text:<br>
-          </div>
-          <div class="cipherText" style="font-size:13px;margin-top:4px;color:rgba(255,210,130,0.65);">
+          <div class="cipherText" style="font-size:13px;margin-top:8px;color:rgba(255,210,130,0.65);">
             "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU."
           </div>
-
-          <div class="shiftRow">
-            <label for="shiftSlider">Caesar Shift —</label>
-            <input id="shiftSlider" type="range" min="0" max="25" value="0" />
-            <span class="shiftVal" id="shiftVal">0</span>
-          </div>
-          <div class="decoded" id="decoded">—</div>
-          <div class="decodeHint" id="decodeHint"></div>
         </div>
 
       </section>
@@ -538,14 +527,7 @@ Decode the cipher. The words spell the numbers.</p>
             <div class="lockStatus" id="lockStatus"></div>
           </div>
 
-          <div style="border:1px dashed rgba(120,255,210,0.18);padding:10px;background:rgba(0,0,0,0.28);">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px;">Caesar Cipher — Reference</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-              Each letter is shifted forward in the alphabet by a fixed number.<br>
-              A→D, B→E, C→F ... (shift of 3)<br><br>
-              To decode: shift backwards by the same amount.<br>
-              The decoded text spells out three numbers as words.
-            </div>
+
           </div>
 
         </div>
@@ -565,14 +547,7 @@ Decode the cipher. The words spell the numbers.</p>
 
     <div class="photoFrame" id="photoFrame" style="display:none;">
       <div class="photoFrameLabel">Blueprint photograph — circled location</div>
-      <div class="photoPlaceholder" id="photoPlaceholder">
-        <!--
-          REPLACE THIS WITH YOUR ACTUAL PHOTO:
-          <img src="your-location-photo.jpg" alt="Location photograph" />
-
-          Until then, the placeholder text below shows.
-        -->
-        [ REPLACE WITH LOCATION PHOTOGRAPH ]<br>
+      <img src="IMG_1195.jpg" alt="Dunton" class="photoPlaceholder">
         <span style="opacity:0.55;font-size:10px;">Add your campus photo here — set src= on the img tag above</span>
       </div>
       <div class="photoCaption">Location identified — see physical slip of paper at this site</div>
@@ -590,54 +565,8 @@ Decode the cipher. The words spell the numbers.</p>
   function tickClock(){ $("clock").textContent = new Date().toLocaleTimeString(); }
   tickClock(); setInterval(tickClock, 1000);
 
-  // ---- Caesar cipher ----
-  // Encoded with shift +3 (classic Caesar).
-  // "WKUHH / HLJKW / VLA" decodes to "THREE / EIGHT / SIX"
-  // Combination: 3 - 8 - 6
-  //
-  // Second line encodes:
-  // "Caesar was a Roman Emperor. His cipher shifts each letter by a FIXED NUMBER."
-  // at shift 3 → "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU."
-  // (this is already shown in ciphertext above as the "hint" — players decode this too)
-
-  const CIPHER_MAIN  = "WKUHH / HLJKW / VLA";
-  const CIPHER_HINT  = "Fdhvdu zdv d Urpdq Hpshuru. Klv flskhu vkliwv hdfk ohwwhu e| d IL[HG QXPEHU.";
-  const CORRECT_SHIFT = 3;
+  // ---- Locker combo ----
   const COMBO = [3, 8, 6]; // THREE, EIGHT, SIX
-
-  function caesarDecode(text, shift){
-    return text.split("").map(ch => {
-      const upper = ch >= "A" && ch <= "Z";
-      const lower = ch >= "a" && ch <= "z";
-      if (!upper && !lower) return ch;
-      const base = upper ? 65 : 97;
-      return String.fromCharCode(((ch.charCodeAt(0) - base - shift + 26) % 26) + base);
-    }).join("");
-  }
-
-  const slider = $("shiftSlider");
-  const decodedEl = $("decoded");
-  const decodeHintEl = $("decodeHint");
-
-  function updateCipher(){
-    const shift = Number(slider.value);
-    $("shiftVal").textContent = String(shift);
-
-    const dec = caesarDecode(CIPHER_MAIN, shift);
-    decodedEl.textContent = dec;
-
-    if (shift === CORRECT_SHIFT){
-      decodeHintEl.textContent = "✓ DECODED — Three words. Three digits. Enter the combination.";
-      decodeHintEl.style.color = "var(--ok)";
-    } else if (shift === 0){
-      decodeHintEl.textContent = "";
-    } else {
-      decodeHintEl.textContent = "";
-    }
-  }
-
-  slider.addEventListener("input", updateCipher);
-  updateCipher();
 
   // ---- Padlock dials ----
   const dials = [0, 0, 0];
@@ -706,16 +635,14 @@ Further in, the tone shifts:
    They are watching.
 
    If I disappear — go to my office.
-   Dunton Tower, 4th floor.
-   The rotary phone is still on the desk.
-   I hid an emergency number on a slip of paper
-   underneath the phone itself.
-
-   Call it."
+   Dunton Tower, 23rd floor.
+   Thats where it is. 
+   The final piece.
+   
 
 You photograph the blueprint. You close the locker.
 
-The next step is Dunton Tower.`;
+The final step is Dunton Tower.`;
 
   function openLockerModal(){
     $("modalBody").textContent = "";
